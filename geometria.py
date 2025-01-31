@@ -147,17 +147,18 @@ for order in np.linspace(0.4, 0.8, n_samples):
     savetxt(f"{geometry_name}_{porose}.dat", matrix)        
 
 
-! directory="~/GEOMETRIES/square"
-! mkdir -p ~/GEOMETRIES/square
-! mv square*.dat ~/GEOMETRIES/square
+%env geometry_name=$geometry_name
+! mkdir -p "$HOME/GEOMETRIES/$geometry_name"
+! mv $geometry_name*.dat "$HOME/GEOMETRIES/$geometry_name"
+
 
 # Visualização
 plt.imshow(matrix, cmap='gray')
-plt.title("Matriz Concatenada 2x2")
+plt.title(f"{geometry_name} {porose} 2d")
 plt.axis('off')
 plt.show()
 
-#%% [1.5] 
+#%% [1.5] Geometry generation for oblique geometry and save into a diretory
 
 geometry_name = "oblique"
 nx, ny = 200, 200
@@ -175,18 +176,20 @@ for order in np.linspace(0.4, 0.8, n_samples):
         i -= 0.5
     savetxt(f"{geometry_name}_{porose}.dat", matrix)        
 
-! directory="~/GEOMETRIES/oblique"
-! mkdir -p ~/GEOMETRIES/oblique
-! mv square*.dat ~/GEOMETRIES/oblique
+
+%env geometry_name=$geometry_name
+! mkdir -p "$HOME/GEOMETRIES/$geometry_name"
+! mv $geometry_name*.dat "$HOME/GEOMETRIES/$geometry_name"
+
 
 # Visualização
 plt.imshow(matrix, cmap='gray')
-plt.title("Matriz Concatenada 2x2")
+plt.title(f"{geometry_name} {porose} 2d")
 plt.axis('off')
 plt.show()
 
 
-#%%
+#%% [1.6] Geometry generation for square geometry and save into a diretory
 geometry_name = 'centered'
 nx, ny = 200, 200
 matrix = np.zeros((ny, nx), dtype=np.uint8)
@@ -203,16 +206,17 @@ for order in np.linspace(0.4, 0.8, n_samples):
         i -= 0.5
     savetxt(f"{geometry_name}_{porose}.dat", matrix)        
 
+%env geometry_name=$geometry_name
+! mkdir -p "$HOME/GEOMETRIES/$geometry_name"
+! mv $geometry_name*.dat "$HOME/GEOMETRIES/$geometry_name"
 
-! directory="~/GEOMETRIES/centered"
-! mkdir -p diretory
-! mv square*.dat diretory
 
 # Visualização
 plt.imshow(matrix, cmap='gray')
-plt.title("Matriz Concatenada 2x2")
+plt.title(f"{geometry_name} {porose} 2d")
 plt.axis('off')
 plt.show()
+
 
 #%%
 nx, ny = 200, 200
