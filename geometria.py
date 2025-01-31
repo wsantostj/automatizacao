@@ -1,5 +1,9 @@
+# [1.1] Imports 
+
 import numpy as np
 import matplotlib.pyplot as plt
+
+#%% [1.2] Just the functions used later
 
 
 def add_circle(matrix, center, radius):
@@ -14,7 +18,6 @@ def concatenate_matrix(matrix, repetitions=(2, 2)):
     return np.tile(matrix, repetitions)
 
 def porosity(matrix):
-    void = (matrix == 0).sum()
     total = matrix.size
     return float(round((matrix == 0).sum( ) / total, 2))
 
@@ -29,38 +32,27 @@ def concatenate_alternately_with_rotation(matrix, repetitions_v):
     return np.vstack(concatenated_matrix)
 
 
-def savetxt(matrix):
+def savetxt(file, matrix):
     p = []
     for u in range(matrix.shape[0]):
         for v in range(matrix.shape[1]):
             if matrix[u, v] == 1:
                 p.append([v, matrix.shape[0] - u])
     
-    file = 'file.dat'
     np.savetxt(file, p, fmt='%i')
 
  
- 
+
 def geometry(matrix, topology, r, repetitions = (3,3), number = 15, repetitions_v = 3):
-
-    # Adicionar o círculo central
-    if topology == "random":
-        concatenated_matrix = concatenate_matrix(matrix, repetitions)
-        for cr in center_random:
-            add_circle(concatenated_matrix, cr, r)
-        
-
-
-    # Adicionar o círculo central
-    elif topology == "centered":
+    
+    if topology == "centered":
         add_circle(matrix, center, r)
         # Concatenar a matriz 2x2
         # Adicionar círculos nos cantos
         for corner in corners:
             add_circle(matrix, corner, r)
         concatenated_matrix = concatenate_matrix(matrix, repetitions)
-
-
+    
 
     elif topology == "square":
         # Adicionar círculos nos cantos
@@ -74,9 +66,20 @@ def geometry(matrix, topology, r, repetitions = (3,3), number = 15, repetitions_
             add_circle(matrix, corner, r)
         concatenated_matrix = concatenate_matrix(matrix, repetitions = (1, repetitions_v))
         concatenated_matrix = concatenate_alternately_with_rotation(concatenated_matrix, repetitions_v = 3)
+    
+    """ 
+        # Adicionar o círculo central
+        if topology == "random":
+            concatenated_matrix = concatenate_matrix(matrix, repetitions)
+            for cr in center_random:
+                add_circle(concatenated_matrix, cr, r = min(nx,ny) // 2)
+            
+    """
+
+        # Adicionar o círculo central
     return concatenated_matrix    
 
-#%%
+#%% [1.3] Boundery Conditions or positions where the circles will be placed
 
 nx, ny = 200, 200
 matrix = np.zeros((ny, nx), dtype=np.uint8)
@@ -88,10 +91,28 @@ middle = (0, matrix.shape[1] // 2)
 center = (matrix.shape[0] // 2, matrix.shape[1] // 2)
 
 
-n = 10
-center_random = []
-for n in range(n):
-    center_random.append((np.random.randint(0, nx*3), np.random.randint(0, ny*3)))
+# n = 4
+# center_random = []
+# R_max = min(nx, ny) //2
+
+# # Função para calcular distância entre dois pontos
+# def distance(p1, p2):
+#     return np.sqrt((p1[0] - p2[0])**2 + (p1[1] - p2[1])**2)
+
+# # Geração de centros aleatórios sem sobreposição
+# while len(center_random) < n:
+#     # Gera um novo centro aleatório
+#     new_center = (
+#         np.random.randint(0, matrix.shape[0]),
+#         np.random.randint(0, matrix.shape[1])
+#     )
+    
+#     # Verifica se ele não se sobrepõe aos já existentes
+#     if all(distance(new_center, existing) >= 2 * R_max for existing in center_random):
+#         center_random.append(new_center)
+
+# for n in range(n):
+#     center_random.append((np.random.randint(0, matrix.shape[0]), np.random.randint(0, matrix.shape[1])))
 
     
 # Coordenadas dos cantos
@@ -106,22 +127,86 @@ corners2 = [
 (matrix.shape[1] -1, matrix.shape[1] -1),  # Canto superior direito
 (matrix.shape[0] - 1, 0)  # Canto inferior esquerdo
 ] 
-#%%
+#%% [1.4] Geometry generation for square geometry and save into a diretory
 
+
+geometry_name = "square"
 nx, ny = 200, 200
 matrix = np.zeros((ny, nx), dtype=np.uint8)
+n_samples = 20
+
+for order in np.linspace(0.4, 0.8, n_samples):
+    i = min(nx,ny) // 2
+    porose = 0
+    while porose <= order:
+        nx, ny = 200, 200
+        matrix = np.zeros((ny, nx), dtype=np.uint8)
+        matrix = geometry(matrix, topology = geometry_name, r = i, repetitions = (3,3))
+        porose = porosity(matrix)
+        i -= 0.5
+    savetxt(f"{geometry_name}_{porose}.dat", matrix)        
 
 
-order = 0.5
-i = min(nx,ny) //2
-porose = 0
-while porose <= order:
-    nx, ny = 200, 200
-    matrix = np.zeros((ny, nx), dtype=np.uint8)
-    matrix = geometry(matrix, topology = "oblique", r = i, repetitions = (3,3))
-    porose = porosity(matrix)
-    i -= 0.5
-        
+! directory="~/GEOMETRIES/square"
+! mkdir -p ~/GEOMETRIES/square
+! mv square*.dat ~/GEOMETRIES/square
+
+# Visualização
+plt.imshow(matrix, cmap='gray')
+plt.title("Matriz Concatenada 2x2")
+plt.axis('off')
+plt.show()
+
+#%% [1.5] 
+
+geometry_name = "oblique"
+nx, ny = 200, 200
+matrix = np.zeros((ny, nx), dtype=np.uint8)
+n_samples = 20
+
+for order in np.linspace(0.4, 0.8, n_samples):
+    i = min(nx,ny) // 2
+    porose = 0
+    while porose <= order:
+        nx, ny = 200, 200
+        matrix = np.zeros((ny, nx), dtype=np.uint8)
+        matrix = geometry(matrix, topology = geometry_name, r = i, repetitions = (3,3))
+        porose = porosity(matrix)
+        i -= 0.5
+    savetxt(f"{geometry_name}_{porose}.dat", matrix)        
+
+! directory="~/GEOMETRIES/oblique"
+! mkdir -p ~/GEOMETRIES/oblique
+! mv square*.dat ~/GEOMETRIES/oblique
+
+# Visualização
+plt.imshow(matrix, cmap='gray')
+plt.title("Matriz Concatenada 2x2")
+plt.axis('off')
+plt.show()
+
+
+#%%
+geometry_name = 'centered'
+nx, ny = 200, 200
+matrix = np.zeros((ny, nx), dtype=np.uint8)
+n_samples = 20
+
+for order in np.linspace(0.4, 0.8, n_samples):
+    i = min(nx,ny) // 2
+    porose = 0
+    while porose <= order:
+        nx, ny = 200, 200
+        matrix = np.zeros((ny, nx), dtype=np.uint8)
+        matrix = geometry(matrix, topology = geometry_name, r = i, repetitions = (3,3))
+        porose = porosity(matrix)
+        i -= 0.5
+    savetxt(f"{geometry_name}_{porose}.dat", matrix)        
+
+
+! directory="~/GEOMETRIES/centered"
+! mkdir -p diretory
+! mv square*.dat diretory
 
 # Visualização
 plt.imshow(matrix, cmap='gray')
@@ -134,7 +219,7 @@ nx, ny = 200, 200
 matrix = np.zeros((ny, nx), dtype=np.uint8)
 
 
-concatenated_matrix = geometry(matrix, 'random', 50, (3,3))
+concatenated_matrix = geometry(matrix, 'random', 10, (3,3))
 
 
 savetxt(concatenated_matrix)
